@@ -1,0 +1,1698 @@
+:root {
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-glow: rgba(59, 130, 246, 0.4);
+  --primary-bright: #60a5fa;
+  --secondary-color: #3A8FFF;
+  --secondary-hover: #2C9AFF;
+  --secondary-glow: rgba(58, 143, 255, 0.4);
+  --error-color: #FF5656;
+  --success-color: #10b981;
+  --text-color: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-accent: #e2e8f0;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --divider-color: rgba(255, 255, 255, 0.125);
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-strong: rgba(255, 255, 255, 0.04);
+  --dark-glass: rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --radius: 1rem;
+  --radius-sm: 0.75rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--text-color);
+  background: #000000;
+  /* Dramatic blue spotlight background */
+  background-image: 
+    /* Central blue spotlight for depth */
+    radial-gradient(ellipse 800px 600px at center, 
+        rgba(96, 165, 250, 0.6) 0%,
+        rgba(59, 130, 246, 0.45) 10%,
+        rgba(37, 99, 235, 0.35) 20%,
+        rgba(29, 78, 216, 0.25) 30%,
+        rgba(30, 58, 138, 0.15) 45%,
+        rgba(23, 37, 84, 0.08) 60%,
+        rgba(15, 23, 42, 0.04) 75%,
+        rgba(0, 0, 0, 0.2) 85%,
+        rgba(0, 0, 0, 0.8) 95%,
+        #000000 100%);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Fallback for devices that don't support background-attachment: fixed */
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+    padding: 0.75rem;
+  }
+}
+
+.page-container {
+  width: 100%;
+  max-width: min(420px, calc(100vw - 1.5rem));
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  position: relative;
+}
+
+.logo-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.logo {
+  max-width: 45px;
+  height: auto;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3)) brightness(1.1);
+}
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-glass);
+  overflow: hidden;
+  padding: 1.5rem;
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0.6;
+}
+
+.container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.booking-step {
+  padding: 0;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.booking-step h2 {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--text-color);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  margin-top: 1rem;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  padding: 0;
+  min-height: 2.75rem;
+}
+
+.step-header h2 {
+  margin-bottom: 0;
+  text-align: center;
+  width: 100%;
+  padding-left: 1rem;
+}
+
+.back-icon {
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  width: auto;
+  height: auto;
+  display: inline;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.back-icon:hover {
+  color: var(--text-color);
+  transform: translateY(-50%) translateX(-1px);
+}
+
+.back-icon i {
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Preference Step */
+.preference-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.preference-option {
+  padding: 1.5rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 110px;
+  box-sizing: border-box;
+}
+
+.preference-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.preference-option:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.preference-option:hover::before {
+  opacity: 1;
+}
+
+.preference-option.selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 25px var(--primary-glow);
+  transform: translateY(-6px) scale(1.05);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.preference-option.selected::before {
+  opacity: 1;
+  background: linear-gradient(135deg, var(--primary-glow) 0%, transparent 50%);
+}
+
+.preference-option i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+  transition: all 0.4s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.preference-option:hover i {
+  color: var(--text-accent);
+  transform: scale(1.1);
+}
+
+.preference-option.selected i {
+  color: var(--primary-bright);
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px var(--primary-glow));
+}
+
+.preference-option span {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text-color);
+  position: relative;
+  z-index: 1;
+  line-height: 1.3;
+  transition: all 0.3s ease;
+}
+
+.preference-option.selected span {
+  color: var(--primary-bright);
+  text-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* Date Selector */
+.date-selector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  width: 100%;
+  position: relative;
+  padding: 0 0.5rem;
+}
+
+.date-nav {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.875rem;
+  min-width: 48px;
+  min-height: 48px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.date-nav:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text-accent);
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.date-nav:disabled {
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dates-container {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.75rem 0.25rem;
+  flex: 1;
+  min-width: 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  mask-image: linear-gradient(to right, 
+    transparent,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(to right, 
+    transparent,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+}
+
+.dates-container::-webkit-scrollbar {
+  display: none;
+}
+
+.date-card {
+  min-width: 4rem;
+  width: 4rem;
+  padding: 1rem 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.date-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.date-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.date-card.selected {
+  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 25px var(--primary-glow);
+}
+
+.date-card.selected::before {
+  opacity: 1;
+  background: linear-gradient(135deg, var(--primary-glow) 0%, transparent 50%);
+}
+
+.date-card .day-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.125rem;
+  transition: all 0.3s ease;
+}
+
+.date-card .day-number {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-accent);
+  line-height: 1;
+  margin-bottom: 0.125rem;
+  transition: all 0.3s ease;
+}
+
+.date-card .month {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.2;
+  letter-spacing: 0.25px;
+  transition: all 0.3s ease;
+}
+
+.date-card.selected .day-name,
+.date-card.selected .month {
+  color: var(--primary-bright);
+  text-shadow: 0 0 10px var(--primary-glow);
+}
+
+.date-card.selected .day-number {
+  color: #ffffff;
+  text-shadow: 0 0 15px var(--primary-glow);
+  font-weight: 800;
+  transform: scale(1.05);
+}
+
+/* Date card animations for auto-finding */
+.date-card {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Simple Minimalist Loading */
+.loading-state-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  width: 100%;
+  text-align: center;
+}
+
+.loading-state-centered .loading-message {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  backdrop-filter: blur(20px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  max-width: 280px;
+}
+
+/* Remove all complex loading animations */
+.loading-spinner,
+.loading-dots,
+.loading-dot,
+.loading-progress,
+.loading-state-centered::before,
+.loading-state-centered::after {
+  display: none !important;
+}
+
+/* Remove animation keyframes */
+/*
+@keyframes shimmer { }
+@keyframes breathe { }
+@keyframes textFlow { }
+@keyframes progressFlow { }
+*/
+
+/* Clean empty state */
+.no-slots-message {
+  text-align: center;
+  padding: 2rem 1rem;
+  opacity: 0.7;
+}
+
+.empty-state-icon {
+  margin-bottom: 0.75rem;
+}
+
+.empty-state-icon i {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.no-slots-message p {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Smooth transitions for timeslots */
+.timeslots-container {
+  margin-top: 1.5rem;
+  width: 100%;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 300px;
+}
+
+.timeslots-container.has-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+}
+
+.timeslots-container.loading-state,
+.timeslots-container.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timeslot {
+  padding: 1rem 0.875rem;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  gap: 0.375rem;
+  box-sizing: border-box;
+}
+
+.timeslot::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.timeslot:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 15px rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.timeslot:hover::before {
+  opacity: 1;
+}
+
+.timeslot.selected {
+  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.timeslot.selected::before {
+  opacity: 1;
+  background: linear-gradient(135deg, var(--primary-glow) 0%, transparent 50%);
+}
+
+.timeslot .time {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: var(--text-accent);
+  position: relative;
+  z-index: 1;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  transition: all 0.3s ease;
+}
+
+.timeslot.selected .time {
+  color: #ffffff;
+  text-shadow: 0 0 12px var(--primary-glow);
+  font-weight: 800;
+  transform: scale(1.05);
+}
+
+.timeslot .duration {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.625rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1;
+  line-height: 1.2;
+  transition: all 0.3s ease;
+}
+
+.timeslot.selected .duration {
+  color: var(--primary-bright);
+  background: rgba(59, 130, 246, 0.2);
+  text-shadow: 0 0 8px var(--primary-glow);
+  transform: scale(1.05);
+}
+
+.timeslot.unavailable {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: rgba(100, 116, 139, 0.05);
+}
+
+.timeslot.unavailable:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Contact Form Step */
+.form-group {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-accent);
+  line-height: 1.4;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.875rem;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  min-height: 48px;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-glow), 0 0 15px var(--primary-glow);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.submit-button {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px var(--primary-glow);
+  position: relative;
+  overflow: hidden;
+  min-height: 50px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  box-sizing: border-box;
+  margin-top: 2rem;
+}
+
+.submit-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--primary-glow);
+  background: linear-gradient(135deg, var(--primary-bright), var(--primary-color));
+}
+
+.submit-button:hover::before {
+  left: 100%;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submit-button:disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 15px var(--primary-glow);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+}
+
+/* Confirmation Step */
+.confirmation-content {
+  text-align: center;
+  padding: 1.5rem 0;
+  width: 100%;
+}
+
+.confirmation-content i {
+  font-size: 3rem;
+  color: var(--success-color);
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.5));
+}
+
+.confirmation-content h2 {
+  font-size: 1.375rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+  line-height: 1.3;
+}
+
+.appointment-details {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.25rem;
+  border-radius: var(--radius-sm);
+  margin: 1.5rem 0;
+  text-align: left;
+  box-shadow: var(--shadow);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.detail-item {
+  margin-bottom: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-item .label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+}
+
+.detail-item .value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #ffffff;
+  text-shadow: 0 0 10px var(--primary-glow);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* Loading state improvements */
+.loading-text {
+  animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+.booking-step.hidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+/* Enhanced selected states */
+.date-card.selected {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important;
+  transform: translateY(-4px) !important;
+}
+
+.timeslot.selected {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Responsive Design */
+
+/* Small phones (320px - 480px) */
+@media (max-width: 480px) {
+  body {
+    padding: 0.75rem;
+  }
+
+  .page-container {
+    padding: 0.5rem;
+    gap: 1rem;
+    max-width: calc(100vw - 1.5rem);
+  }
+  
+  .container {
+    padding: 1rem;
+    margin: 0.25rem 0;
+  }
+  
+  .booking-step h2 {
+    font-size: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .step-header {
+    margin-bottom: 1.25rem;
+    padding: 0;
+    min-height: 2.5rem;
+  }
+  
+  .preference-options {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .preference-option {
+    padding: 1.25rem 1rem;
+    min-height: 90px;
+  }
+
+  .preference-option i {
+    font-size: 1.625rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .preference-option span {
+    font-size: 0.8125rem;
+  }
+  
+  .timeslots-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .timeslot {
+    min-height: 75px;
+    padding: 0.875rem 0.625rem;
+    gap: 0.25rem;
+  }
+
+  .timeslot .time {
+    font-size: 0.9375rem;
+  }
+
+  .timeslot .duration {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.5rem;
+  }
+  
+  .date-selector {
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .date-nav {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 0.75rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .dates-container {
+    gap: 0.625rem;
+    padding: 0.625rem 0.125rem;
+  }
+
+  .date-card {
+    min-width: 3.5rem;
+    width: 3.5rem;
+    padding: 0.875rem 0.375rem;
+    height: 72px;
+  }
+
+  .date-card .day-name,
+  .date-card .month {
+    font-size: 0.625rem;
+  }
+
+  .date-card .day-number {
+    font-size: 1.125rem;
+  }
+
+  .back-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    left: -0.5rem;
+  }
+
+  .back-icon i {
+    font-size: 0.75rem;
+  }
+
+  .logo {
+    max-width: 35px;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.8125rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group input {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    min-height: 44px;
+  }
+
+  .submit-button {
+    padding: 0.625rem;
+    font-size: 0.8125rem;
+    min-height: 42px;
+    margin-top: 1.5rem;
+  }
+
+  .submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .appointment-details {
+    padding: 1rem;
+    margin: 1.25rem 0;
+  }
+
+  .detail-item {
+    margin-bottom: 0.75rem;
+  }
+
+  .detail-item .label {
+    font-size: 0.75rem;
+  }
+
+  .detail-item .value {
+    font-size: 0.9375rem;
+  }
+
+  .confirmation-content {
+    padding: 1.25rem 0;
+  }
+
+  .confirmation-content i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .confirmation-content h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Large phones / Small tablets (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .page-container {
+    max-width: 500px;
+    padding: 1.25rem;
+    gap: 1.5rem;
+  }
+  
+  .container {
+    padding: 1.75rem;
+  }
+
+  .booking-step h2 {
+    font-size: 1.125rem;
+    margin-bottom: 1.375rem;
+  }
+
+  .step-header {
+    margin-bottom: 1.375rem;
+  }
+  
+  .timeslots-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.875rem;
+    margin-top: 1.25rem;
+  }
+
+  .timeslot {
+    min-height: 78px;
+    padding: 0.9375rem 0.75rem;
+  }
+
+  .timeslot .time {
+    font-size: 0.9375rem;
+  }
+
+  .preference-options {
+    gap: 1.125rem;
+  }
+
+  .preference-option {
+    padding: 1.375rem 1.125rem;
+    min-height: 100px;
+  }
+
+  .preference-option i {
+    font-size: 1.75rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .preference-option span {
+    font-size: 0.875rem;
+  }
+
+  .date-selector {
+    gap: 0.875rem;
+    margin-bottom: 1.375rem;
+  }
+
+  .date-nav {
+    width: 2.875rem;
+    height: 2.875rem;
+  }
+
+  .dates-container {
+    gap: 0.6875rem;
+    padding: 0.6875rem 0.1875rem;
+  }
+
+  .date-card {
+    min-width: 3.75rem;
+    width: 3.75rem;
+    padding: 0.9375rem 0.4375rem;
+    height: 76px;
+  }
+
+  .date-card .day-name,
+  .date-card .month {
+    font-size: 0.6875rem;
+  }
+
+  .date-card .day-number {
+    font-size: 1.1875rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group input {
+    padding: 0.625rem;
+    font-size: 0.8125rem;
+    min-height: 40px;
+  }
+
+  .submit-button {
+    padding: 0.625rem;
+    font-size: 0.8125rem;
+    min-height: 42px;
+    margin-top: 1.5rem;
+  }
+
+  .submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .appointment-details {
+    padding: 0.75rem;
+    margin: 1rem 0;
+  }
+
+  .confirmation-content {
+    padding: 1rem 0;
+  }
+
+  .confirmation-content i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .confirmation-content h2 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .container::before {
+    height: 0.5px;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .preference-option:hover,
+  .date-card:hover,
+  .timeslot:hover,
+  .submit-button:hover {
+    transform: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .container {
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+  
+  .preference-option,
+  .date-card,
+  .timeslot {
+    background: white;
+    border: 1px solid #ccc;
+  }
+}
+
+/* Tablets (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .page-container {
+    max-width: 600px;
+    padding: 1.75rem;
+    gap: 1.75rem;
+  }
+  
+  .container {
+    padding: 2rem;
+  }
+
+  .booking-step h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .step-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .timeslots-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .timeslot {
+    min-height: 80px;
+    padding: 1rem 0.75rem;
+  }
+
+  .preference-options {
+    gap: 1.25rem;
+  }
+
+  .preference-option {
+    padding: 1.5rem 1.25rem;
+    min-height: 105px;
+  }
+
+  .preference-option i {
+    font-size: 2rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .preference-option span {
+    font-size: 1rem;
+  }
+
+  .date-card {
+    min-width: 4rem;
+    width: 4rem;
+    padding: 1rem 0.625rem;
+    height: 80px;
+  }
+
+  .date-card .day-name,
+  .date-card .month {
+    font-size: 0.6875rem;
+  }
+
+  .date-card .day-number {
+    font-size: 1.25rem;
+  }
+
+  .back-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .back-icon i {
+    font-size: 1rem;
+  }
+
+  .logo {
+    max-width: 50px;
+  }
+}
+
+/* Desktop (1025px - 1440px) */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .page-container {
+    max-width: 650px;
+    padding: 2rem;
+    gap: 2rem;
+  }
+  
+  .container {
+    padding: 2.5rem;
+  }
+
+  .booking-step h2 {
+    font-size: 1.3125rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .step-header {
+    margin-bottom: 1.75rem;
+  }
+  
+  .timeslots-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.125rem;
+  }
+
+  .timeslot {
+    min-height: 85px;
+    padding: 1.125rem 0.875rem;
+  }
+
+  .timeslot .time {
+    font-size: 1rem;
+  }
+
+  .timeslot .duration {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+  }
+
+  .preference-options {
+    gap: 1.5rem;
+  }
+
+  .preference-option {
+    padding: 1.75rem 1.5rem;
+    min-height: 115px;
+  }
+
+  .preference-option i {
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .preference-option span {
+    font-size: 1.0625rem;
+  }
+
+  .date-card {
+    min-width: 4.25rem;
+    width: 4.25rem;
+    padding: 1.125rem 0.75rem;
+    height: 85px;
+  }
+
+  .date-card .day-name,
+  .date-card .month {
+    font-size: 0.75rem;
+  }
+
+  .date-card .day-number {
+    font-size: 1.375rem;
+  }
+
+  .logo {
+    max-width: 55px;
+  }
+}
+
+/* Large screens (1441px+) */
+@media (min-width: 1441px) {
+  .page-container {
+    max-width: 700px;
+    padding: 2.5rem;
+    gap: 2.25rem;
+  }
+  
+  .container {
+    padding: 3rem;
+  }
+
+  .booking-step h2 {
+    font-size: 1.375rem;
+    margin-bottom: 2rem;
+  }
+
+  .step-header {
+    margin-bottom: 2rem;
+  }
+  
+  .timeslots-container {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.25rem;
+  }
+
+  .timeslot {
+    min-height: 90px;
+    padding: 1.25rem 1rem;
+  }
+
+  .timeslot .time {
+    font-size: 1.0625rem;
+  }
+
+  .timeslot .duration {
+    font-size: 0.8125rem;
+    padding: 0.3125rem 0.75rem;
+  }
+
+  .preference-options {
+    gap: 1.75rem;
+  }
+
+  .preference-option {
+    padding: 2rem 1.75rem;
+    min-height: 125px;
+  }
+
+  .preference-option i {
+    font-size: 2.5rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .preference-option span {
+    font-size: 1.125rem;
+  }
+
+  .date-card {
+    min-width: 4.5rem;
+    width: 4.5rem;
+    padding: 1.25rem 0.875rem;
+    height: 90px;
+  }
+
+  .date-card .day-name,
+  .date-card .month {
+    font-size: 0.8125rem;
+  }
+
+  .date-card .day-number {
+    font-size: 1.5rem;
+  }
+
+  .logo {
+    max-width: 60px;
+  }
+}
+
+/* Landscape orientation for phones */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 896px) {
+  body {
+    justify-content: flex-start;
+    padding: 0.5rem;
+  }
+  
+  .page-container {
+    padding: 0.5rem;
+    gap: 0.75rem;
+    max-width: 100%;
+  }
+  
+  .container {
+    padding: 1rem;
+  }
+  
+  .logo {
+    max-width: 30px;
+  }
+  
+  .booking-step h2 {
+    font-size: 0.9375rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .step-header {
+    margin-bottom: 0.75rem;
+  }
+  
+  .preference-option {
+    padding: 0.625rem;
+    min-height: 60px;
+  }
+
+  .preference-option i {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .preference-option span {
+    font-size: 0.75rem;
+  }
+  
+  .timeslots-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  
+  .timeslot {
+    min-height: 60px;
+    padding: 0.5rem 0.375rem;
+    gap: 0.125rem;
+  }
+
+  .timeslot .time {
+    font-size: 0.8125rem;
+  }
+
+  .timeslot .duration {
+    font-size: 0.5625rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .date-card {
+    min-width: 2.75rem;
+    width: 2.75rem;
+    padding: 0.5rem 0.25rem;
+    height: 60px;
+  }
+
+  .date-card .day-name,
+  .date-card .month {
+    font-size: 0.5rem;
+  }
+
+  .date-card .day-number {
+    font-size: 0.875rem;
+  }
+
+  .date-nav {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.625rem;
+  }
+
+  .back-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .back-icon i {
+    font-size: 0.6875rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* iPhone 12 Pro specific optimizations */
+@media (max-width: 390px) and (max-height: 844px) {
+  body {
+    padding: 0.5rem;
+  }
+
+  .page-container {
+    padding: 0.5rem;
+    gap: 1rem;
+    max-width: calc(100vw - 1rem);
+  }
+  
+  .container {
+    padding: 1.25rem;
+    border-radius: 0.875rem;
+    position: relative;
+    overflow: visible;
+  }
+  
+  .booking-step h2 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .step-header {
+    margin-bottom: 1rem;
+    padding: 0;
+    position: relative;
+    min-height: 2.25rem;
+  }
+
+  .back-icon {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.25rem;
+    height: 2.25rem;
+    min-width: 44px;
+    min-height: 44px;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .back-icon:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .back-icon i {
+    font-size: 0.6875rem;
+  }
+  
+  .date-selector {
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+  }
+
+  .date-nav {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .dates-container {
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+
+  .date-card {
+    min-width: 3.25rem;
+    width: 3.25rem;
+    padding: 0.75rem 0.375rem;
+    height: 68px;
+  }
+
+  .date-card .day-name,
+  .date-card .month {
+    font-size: 0.5625rem;
+    margin-bottom: 0.125rem;
+    margin-top: 0.125rem;
+  }
+
+  .date-card .day-number {
+    font-size: 1.0625rem;
+    margin: 0.125rem 0;
+  }
+
+  .timeslots-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+    margin-top: 1rem;
+  }
+
+  .timeslot {
+    min-height: 68px;
+    padding: 0.75rem 0.5rem;
+    gap: 0.1875rem;
+  }
+
+  .timeslot .time {
+    font-size: 0.875rem;
+  }
+
+  .timeslot .duration {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+
+  .preference-options {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .preference-option {
+    padding: 1rem 0.75rem;
+    min-height: 80px;
+  }
+
+  .preference-option i {
+    font-size: 1.5rem;
+    margin-bottom: 0.375rem;
+  }
+
+  .preference-option span {
+    font-size: 0.8125rem;
+  }
+
+  .logo {
+    max-width: 35px;
+  }
+} 

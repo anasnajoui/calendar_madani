@@ -6,7 +6,7 @@ import { it } from 'date-fns/locale';
 
 // Configuration for GoHighLevel Calendar
 const GHL_CALENDAR_ID = 'pybJlTCxAZU1k1w3W5V7';
-const DEFAULT_SLOT_DURATION_MINUTES = 15; // Assuming 15-minute slots
+const DEFAULT_SLOT_DURATION_MINUTES = 60; // All slots are now considered 60 minutes
 
 interface TimeSlot {
   start: string; // ISO string for start time
@@ -121,11 +121,16 @@ export default function BookingFlow() {
         return []; // Return empty if primary structure not found
       }
 
+      // Sort the fetched slot strings (start times) chronologically
+      fetchedSlotStrings.sort((a, b) => parseISO(a).getTime() - parseISO(b).getTime());
+
       const processedSlots: TimeSlot[] = fetchedSlotStrings
         .map((slotISOString: string) => {
           try {
             const slotStartDateTime = parseISO(slotISOString);
+            // All slots will now have a fixed duration of DEFAULT_SLOT_DURATION_MINUTES (60 minutes)
             const slotEndDateTime = addMinutes(slotStartDateTime, DEFAULT_SLOT_DURATION_MINUTES);
+
             return {
               start: slotISOString,
               end: slotEndDateTime.toISOString(),
@@ -137,11 +142,9 @@ export default function BookingFlow() {
           }
         })
         .filter(slot => slot !== null) as TimeSlot[];
-
-      processedSlots.sort((a, b) => parseISO(a.start).getTime() - parseISO(b.start).getTime());
       
       if (processedSlots.length > 0) {
-          console.log(`[BookingFlow] Successfully processed ${processedSlots.length} slots (internal).`);
+          console.log(`[BookingFlow] Successfully processed ${processedSlots.length} fixed-duration (60min) slots (internal). First slot:`, processedSlots[0]);
       }
       return processedSlots;
     } catch (error) {

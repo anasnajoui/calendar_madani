@@ -3,6 +3,7 @@
 import React from 'react';
 import Script from 'next/script';
 import BookingFlow from './components/BookingFlow';
+import { Analytics } from "@vercel/analytics/next"
 
 export default function Home() {
   return (

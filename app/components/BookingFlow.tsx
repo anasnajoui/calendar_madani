@@ -663,7 +663,7 @@ export default function BookingFlow() {
       <div className={`booking-step ${currentStep === 'confirmation' ? '' : 'hidden'}`}>
         <div className="confirmation-content">
           <i className="fas fa-check-circle"></i>
-          <h2>Appuntamento confermato con il tuo coach</h2>
+          <h2>Appuntamento confermato.</h2>
           {appointmentDetails && (
             <div className="appointment-details">
               <div className="detail-item">

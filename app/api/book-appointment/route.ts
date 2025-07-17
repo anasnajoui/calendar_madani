@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Configuration for GoHighLevel
 const GHL_CONFIG = {
-  calendarId: 'pybJlTCxAZU1k1w3W5V7',
+  calendarId: 'PodafRddcOf4U8b0zAeE',
   locationId: 's5MRQQ7j3TjZXRe0CtvE',
   apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6InM1TVJRUTdqM1RqWlhSZTBDdHZFIiwiY29tcGFueV9pZCI6IkR0anBxVUZmaHZyNlJIak9WcWR6IiwidmVyc2lvbiI6MSwiaWF0IjoxNjkxOTUwNTEzMjg4LCJzdWIiOiJ4TVZiOHVTVHNvTTkzNjNFbW1ubyJ9.aexZGVFaqG_L6n3VPzP7xdZIiyqKp8-6nEi3HZWQ7jI',
   apiEndpoint: 'https://rest.gohighlevel.com/v1/appointments/'

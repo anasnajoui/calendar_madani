@@ -5,7 +5,7 @@ import { format, addDays, isSameDay, isToday, isAfter, startOfDay, parseISO, dif
 import { it } from 'date-fns/locale';
 
 // Configuration for GoHighLevel Calendar
-const GHL_CALENDAR_ID = 'pybJlTCxAZU1k1w3W5V7';
+const GHL_CALENDAR_ID = 'PodafRddcOf4U8b0zAeE';
 const DEFAULT_SLOT_DURATION_MINUTES = 60; // All slots are now considered 60 minutes
 
 interface TimeSlot {

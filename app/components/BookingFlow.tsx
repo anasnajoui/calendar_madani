@@ -19,6 +19,11 @@ interface AppointmentDetails {
   phone: string;
 }
 
+type AlternativeSlot = {
+  date: Date;
+  slot: TimeSlot;
+};
+
 export default function BookingFlow() {
   const [currentStep, setCurrentStep] = useState('preference');
   const [selectedPreference, setSelectedPreference] = useState<string | null>(null);
@@ -92,6 +97,30 @@ export default function BookingFlow() {
       return filterSlotsByPreference(daySlots, selectedPreference).length > 0;
     });
   }, [dateWindow, filterSlotsByPreference, getDateKey, selectedPreference, slotsByDate]);
+
+  const oppositePreference =
+    selectedPreference === 'morning'
+      ? 'afternoon'
+      : selectedPreference === 'afternoon'
+        ? 'morning'
+        : null;
+
+  const oppositeLabelWithArticle = oppositePreference === 'morning' ? 'la mattina' : 'il pomeriggio';
+
+  const oppositePreferenceSlots = useMemo<AlternativeSlot[]>(() => {
+    if (!oppositePreference) {
+      return [];
+    }
+
+    const alternatives = dateWindow.flatMap((date) => {
+      const dateKey = getDateKey(date);
+      const daySlots = slotsByDate[dateKey] ?? [];
+      const filtered = filterSlotsByPreference(daySlots, oppositePreference);
+      return filtered.map((slot) => ({ date, slot }));
+    });
+
+    return alternatives.slice(0, 16);
+  }, [dateWindow, filterSlotsByPreference, getDateKey, oppositePreference, slotsByDate]);
 
   // Internal function to fetch and process slots, returns TimeSlot[]
   const fetchGHLCalendarSlotsInternal = useCallback(async (date: Date): Promise<TimeSlot[]> => {
@@ -387,6 +416,13 @@ export default function BookingFlow() {
     setCurrentStep('contact');
   };
 
+  const handleOppositeSlotSelect = (date: Date, slotStartTimeISO: string) => {
+    setIsAutoFindingDate(false);
+    setSelectedDate(date);
+    setSelectedTime(slotStartTimeISO);
+    setCurrentStep('contact');
+  };
+
   // Handle form submission with actual booking
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -516,6 +552,11 @@ export default function BookingFlow() {
     }
   };
 
+  const selectedSlotLabel =
+    selectedTime && selectedDate
+      ? `${format(selectedDate, 'EEE d MMM', { locale: it })} • ${format(parseISO(selectedTime), 'HH:mm', { locale: it })}`
+      : null;
+
   return (
     <div className="booking-flow">
       {/* Step 1: Preference */}
@@ -630,6 +671,32 @@ export default function BookingFlow() {
             </div>
           )}
         </div>
+
+        {!isAutoFindingDate && !isLoadingSlots && oppositePreferenceSlots.length > 0 ? (
+          <div className="opposite-slots-section">
+            <div className="opposite-slots-header">
+              <h3>Se preferisci {oppositeLabelWithArticle}</h3>
+              <span>Scorri per alternative rapide</span>
+            </div>
+            <div className="opposite-slots-scroll" role="list">
+              {oppositePreferenceSlots.map((item) => {
+                const isSelected = selectedTime === item.slot.start;
+                return (
+                  <button
+                    key={`${item.slot.start}-${item.date.toISOString()}`}
+                    type="button"
+                    role="listitem"
+                    className={`opposite-slot-chip ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleOppositeSlotSelect(item.date, item.slot.start)}
+                  >
+                    <span className="opposite-slot-date">{format(item.date, 'EEE d MMM', { locale: it })}</span>
+                    <span className="opposite-slot-time">{item.slot.displayTime}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Step 3: Contact Information */}
@@ -652,6 +719,12 @@ export default function BookingFlow() {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="contact-form">
+          {selectedSlotLabel ? (
+            <div className="contact-selection-summary">
+              <span className="summary-label">Appuntamento selezionato</span>
+              <strong>{selectedSlotLabel}</strong>
+            </div>
+          ) : null}
           {bookingError && (
             <div className="error-message" style={{ 
               color: 'var(--error-color)', 

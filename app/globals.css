@@ -85,7 +85,7 @@ body {
 
 .page-container {
   width: 100%;
-  max-width: min(420px, calc(100vw - 1.5rem));
+  max-width: min(560px, calc(100vw - 1rem));
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -117,7 +117,7 @@ body {
   border-radius: var(--radius);
   box-shadow: var(--shadow-glass);
   overflow: hidden;
-  padding: 1.5rem;
+  padding: 1.75rem;
   position: relative;
   box-sizing: border-box;
   margin: 0;
@@ -321,6 +321,7 @@ body {
 .date-selector {
   display: flex;
   align-items: center;
+  justify-content: center;
   margin-bottom: 1.5rem;
   gap: 1rem;
   width: 100%;
@@ -370,7 +371,7 @@ body {
   gap: 0.75rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.75rem 0.25rem;
+  padding: 0.75rem 0.5rem;
   flex: 1;
   min-width: 0;
   -ms-overflow-style: none;
@@ -690,6 +691,84 @@ body {
   box-shadow: none;
 }
 
+.opposite-slots-section {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.opposite-slots-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.625rem;
+}
+
+.opposite-slots-header h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.opposite-slots-header span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.opposite-slots-scroll {
+  display: flex;
+  gap: 0.625rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0 0.375rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.opposite-slots-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.opposite-slot-chip {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-color);
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  min-width: 130px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: all 0.2s ease;
+}
+
+.opposite-slot-chip:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.opposite-slot-chip.selected {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 1px rgba(58, 143, 255, 0.4), 0 0 16px rgba(58, 143, 255, 0.2);
+}
+
+.opposite-slot-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.opposite-slot-time {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-accent);
+}
+
 /* Contact Form Step */
 .form-group {
   margin-bottom: 1.5rem;
@@ -698,8 +777,32 @@ body {
 
 .contact-form {
   width: 100%;
-  max-width: 440px;
+  max-width: 500px;
   margin: 0 auto;
+}
+
+.contact-selection-summary {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.contact-selection-summary .summary-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.2rem;
+}
+
+.contact-selection-summary strong {
+  font-size: 0.92rem;
+  color: var(--text-accent);
 }
 
 .form-group label {
@@ -885,18 +988,33 @@ body {
 /* Small phones (320px - 480px) */
 @media (max-width: 480px) {
   body {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .page-container {
-    padding: 0.5rem;
+    padding: 0.4rem;
     gap: 1rem;
-    max-width: calc(100vw - 1.5rem);
+    max-width: calc(100vw - 0.75rem);
   }
   
   .container {
-    padding: 1rem;
+    padding: 1.2rem;
     margin: 0.25rem 0;
+  }
+
+  .opposite-slots-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .opposite-slot-chip {
+    min-width: 122px;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .contact-form {
+    max-width: 100%;
   }
   
   .booking-step h2 {
@@ -953,6 +1071,7 @@ body {
   .date-selector {
     gap: 0.75rem;
     margin-bottom: 1.25rem;
+    align-items: center;
   }
 
   .date-nav {
@@ -965,7 +1084,9 @@ body {
   
   .dates-container {
     gap: 0.625rem;
-    padding: 0.625rem 0.125rem;
+    padding: 0.625rem 0.375rem;
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 
   .date-card {
@@ -1636,7 +1757,9 @@ body {
   
   .dates-container {
     gap: 0.5rem;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0.3rem;
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 
   .date-card {

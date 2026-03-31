@@ -691,6 +691,14 @@ body {
 }
 
 /* Contact Form Step */
+.contact-form {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .form-group {
   margin-bottom: 1.5rem;
   width: 100%;
@@ -750,6 +758,18 @@ body {
   letter-spacing: -0.01em;
   box-sizing: border-box;
   margin-top: 2rem;
+}
+
+.no-available-days-message {
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding: 0.875rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
 }
 
 .submit-button::before {
@@ -996,6 +1016,11 @@ body {
     margin-bottom: 1rem;
   }
 
+  .contact-form {
+    max-width: 100%;
+    gap: 0.25rem;
+  }
+
   .form-group label {
     font-size: 0.8125rem;
     margin-bottom: 0.5rem;
@@ -1011,7 +1036,7 @@ body {
     padding: 0.625rem;
     font-size: 0.8125rem;
     min-height: 42px;
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
   }
 
   .submit-button:disabled {

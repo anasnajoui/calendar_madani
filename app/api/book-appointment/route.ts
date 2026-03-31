@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Configuration for GoHighLevel
-const GHL_CONFIG = {
-  calendarId: 'PodafRddcOf4U8b0zAeE',
-  locationId: 's5MRQQ7j3TjZXRe0CtvE',
-  apiKey: process.env.GOHIGHLEVEL_API_KEY!,
-  apiEndpoint: 'https://rest.gohighlevel.com/v1/appointments/'
-};
+import { getGoHighLevelConfig } from '@/lib/server/gohighlevel/config';
+import { buildAppointmentPayload } from '@/lib/server/gohighlevel/request';
 
 function normalizePhoneNumber(phone: string): string {
   if (!phone) return '';
@@ -23,6 +17,17 @@ function normalizePhoneNumber(phone: string): string {
 
 export async function POST(request: NextRequest) {
   console.log('[API /book-appointment] Received request');
+
+  let config;
+  try {
+    config = getGoHighLevelConfig();
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Invalid GoHighLevel server configuration.' },
+      { status: 500 },
+    );
+  }
+
   try {
     const body = await request.json();
     console.log('[API /book-appointment] Request body:', body);
@@ -36,33 +41,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ghlData: {
-      calendarId: string;
-      selectedTimezone: string;
-      selectedSlot: string;
-      email: string;
-      phone?: string;
-      // Consider adding other optional fields if GHL supports/requires them for your use case
-      // e.g., firstName, lastName (can be derived from email or a name field if you add one)
-    } = {
-      calendarId: GHL_CONFIG.calendarId,
-      selectedTimezone: selectedTimezone,
-      selectedSlot: selectedSlot,
-      email: email
-    };
+    const normalizedPhone = phone ? normalizePhoneNumber(phone) : undefined;
+    const ghlData = buildAppointmentPayload(
+      {
+        selectedTimezone,
+        selectedSlot,
+        email,
+        phone: normalizedPhone,
+      },
+      config,
+    );
 
-    if (phone) {
-      ghlData.phone = normalizePhoneNumber(phone);
-      console.log(`[API /book-appointment] Normalized phone: ${phone} -> ${ghlData.phone}`);
+    if (normalizedPhone) {
+      console.log(`[API /book-appointment] Normalized phone: ${phone} -> ${normalizedPhone}`);
     }
 
     console.log('[API /book-appointment] Sending data to GHL:', ghlData);
 
-    const ghlResponse = await fetch(GHL_CONFIG.apiEndpoint, {
+    const ghlResponse = await fetch(config.appointmentsApiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GHL_CONFIG.apiKey}`
+        'Authorization': `Bearer ${config.apiKey}`
       },
       body: JSON.stringify(ghlData)
     });
@@ -82,9 +82,11 @@ export async function POST(request: NextRequest) {
         const errorData = JSON.parse(responseText);
         errorMessage = errorData.message || errorData.error?.message || (typeof errorData.error === 'string' ? errorData.error : errorMessage);
         if (errorData.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-           errorMessage += `: ${errorData.errors.map((err: any) => err.message || JSON.stringify(err)).join(', ')}`;
+           errorMessage += `: ${errorData.errors
+             .map((err: { message?: string }) => err.message || JSON.stringify(err))
+             .join(', ')}`;
         }
-      } catch (parseError) {
+      } catch {
          errorMessage += ': Failed to parse GHL error response. Raw text: ' + responseText.substring(0, 200);
       }
        // Return GHL's status code if it's a 4xx or 5xx client/server error from their end
@@ -97,7 +99,7 @@ export async function POST(request: NextRequest) {
     let responseData;
     try {
       responseData = JSON.parse(responseText);
-    } catch (parseError) {
+    } catch {
       console.warn('[API /book-appointment] Successfully booked but failed to parse GHL JSON response. Raw text:', responseText.substring(0,500));
       responseData = { success: true, message: 'Appointment booked (GHL response not standard JSON)', rawResponse: responseText };
     }
@@ -114,11 +116,12 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error during booking process';
     console.error('[API /book-appointment] Internal Server Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error during booking process' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
-} 
+}

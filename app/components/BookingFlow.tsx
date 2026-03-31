@@ -4,8 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { format, addDays, isSameDay, isToday, isAfter, startOfDay, parseISO, differenceInMinutes, setHours, setMinutes, setSeconds, setMilliseconds, endOfDay, addMinutes, getHours } from 'date-fns';
 import { it } from 'date-fns/locale';
 
-// Configuration for GoHighLevel Calendar
-const GHL_CALENDAR_ID = 'PodafRddcOf4U8b0zAeE';
 const DEFAULT_SLOT_DURATION_MINUTES = 60; // All slots are now considered 60 minutes
 
 interface TimeSlot {
@@ -83,7 +81,7 @@ export default function BookingFlow() {
     const queryEndDate = endOfDay(date).getTime();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const ghlEndpoint = 'appointments/slots';
-    const apiUrl = `/api/gohighlevel?endpoint=${ghlEndpoint}&calendarId=${GHL_CALENDAR_ID}&startDate=${queryStartDate}&endDate=${queryEndDate}&timezone=${encodeURIComponent(timezone)}`;
+    const apiUrl = `/api/gohighlevel?endpoint=${ghlEndpoint}&startDate=${queryStartDate}&endDate=${queryEndDate}&timezone=${encodeURIComponent(timezone)}`;
     
     console.log('[BookingFlow] Fetching GHL slots (internal). URL:', apiUrl);
 
@@ -684,7 +682,7 @@ export default function BookingFlow() {
               </div>
             </div>
           )}
-          <p>Riceverai un'email di conferma con tutti i dettagli.</p>
+          <p>Riceverai un&apos;email di conferma con tutti i dettagli.</p>
         </div>
       </div>
     </div>

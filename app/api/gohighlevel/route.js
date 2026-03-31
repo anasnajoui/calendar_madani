@@ -1,22 +1,20 @@
 import { NextResponse } from 'next/server';
-
-// Le chiavi API saranno lette dalle variabili d'ambiente di Vercel
-const API_KEY = process.env.GOHIGHLEVEL_API_KEY;
-const BASE_API_URL = 'https://rest.gohighlevel.com/v1'; // Reverted to original Base URL
-// const BASE_API_URL = 'https://services.leadconnectorhq.com'; // New Base URL from docs
+import { getGoHighLevelConfig } from '@/lib/server/gohighlevel/config';
+import { getProxyParams } from '@/lib/server/gohighlevel/request';
 
 async function handleRequest(request) {
+  let config;
+  try {
+    config = getGoHighLevelConfig();
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Invalid GoHighLevel server configuration.' },
+      { status: 500 },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const endpoint = searchParams.get('endpoint');
-  
-  // Log API Key status
-  if (API_KEY) {
-    console.log(`[API Route] GOHIGHLEVEL_API_KEY found. Starts with: ${API_KEY.substring(0, 5)}...`);
-  } else {
-    console.error('[API Route] GOHIGHLEVEL_API_KEY is NOT SET or UNDEFINED. This will cause API errors.');
-    // Potentially return an error response early if key is missing
-    return NextResponse.json({ error: 'API Key is not configured on the server.' }, { status: 500 }); 
-  }
 
   const params = {};
   searchParams.forEach((value, key) => {
@@ -29,11 +27,12 @@ async function handleRequest(request) {
     return NextResponse.json({ error: 'Endpoint parameter is required' }, { status: 400 });
   }
 
-  let apiUrl = `${BASE_API_URL}/${endpoint}`;
+  let apiUrl = `${config.baseApiUrl}/${endpoint}`;
 
   if (request.method === 'GET') {
+    const mergedParams = getProxyParams(endpoint, params, config);
     const queryParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
+    for (const [key, value] of Object.entries(mergedParams)) {
       queryParams.append(key, value);
     }
     const queryString = queryParams.toString();
@@ -49,9 +48,8 @@ async function handleRequest(request) {
     const requestOptions = {
       method: request.method,
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
+        'Authorization': `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json'
-        // 'Version': '2021-04-15' // Removed Version Header, not used with rest.gohighlevel.com/v1
       },
     };
 
@@ -131,7 +129,7 @@ export async function DELETE(request) {
   return handleRequest(request);
 }
 
-export async function OPTIONS(request) {
+export async function OPTIONS() {
   // Handle preflight requests
   return new NextResponse(null, {
     status: 204, // No Content

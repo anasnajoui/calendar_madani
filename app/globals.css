@@ -696,6 +696,12 @@ body {
   width: 100%;
 }
 
+.contact-form {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
 .form-group label {
   display: block;
   margin-bottom: 0.625rem;

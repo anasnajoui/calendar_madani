@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { format, addDays, isSameDay, isToday, isAfter, startOfDay, parseISO, differenceInMinutes, setHours, setMinutes, setSeconds, setMilliseconds, endOfDay, addMinutes, getHours } from 'date-fns';
+import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import { format, addDays, isSameDay, isAfter, startOfDay, parseISO, differenceInMinutes, endOfDay, addMinutes, getHours } from 'date-fns';
 import { it } from 'date-fns/locale';
 
 const DEFAULT_SLOT_DURATION_MINUTES = 60; // All slots are now considered 60 minutes
@@ -28,6 +28,8 @@ export default function BookingFlow() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails | null>(null);
   const datesContainerRef = useRef<HTMLDivElement>(null);
+  const autoFindRequestIdRef = useRef(0);
+  const [slotsByDate, setSlotsByDate] = useState<Record<string, TimeSlot[]>>({});
 
   // State for auto-finding date with slots
   const [isAutoFindingDate, setIsAutoFindingDate] = useState(false);
@@ -60,22 +62,46 @@ export default function BookingFlow() {
     return format(date, 'EEE d MMM', { locale: it });
   };
 
-  // Auto-select the closest available date
-  const autoSelectClosestDate = () => {
-    const dates = generateDates();
-    const today = startOfDay(new Date());
-    
-    const firstAvailableDate = dates.find(date => 
-      isAfter(startOfDay(date), today) || isSameDay(startOfDay(date), today)
-    ) || dates[0]; 
-    
-    setSelectedDate(firstAvailableDate);
-    return firstAvailableDate;
-  };
+  const getDateKey = useCallback((date: Date) => format(date, 'yyyy-MM-dd'), []);
+
+  const filterSlotsByPreference = useCallback((slots: TimeSlot[], preference: string | null): TimeSlot[] => {
+    if (!preference) return slots;
+    return slots.filter(slot => {
+      const slotDate = parseISO(slot.start);
+      const hour = getHours(slotDate);
+      if (preference === 'morning') {
+        return hour >= 8 && hour < 13;
+      }
+      if (preference === 'afternoon') {
+        return hour >= 13 && hour < 18;
+      }
+      return true;
+    });
+  }, []);
+
+  const dateWindow = useMemo(() => generateDates(), []);
+
+  const selectableDates = useMemo(() => {
+    if (!selectedPreference) {
+      return dateWindow;
+    }
+
+    return dateWindow.filter((date) => {
+      const dateKey = getDateKey(date);
+      const daySlots = slotsByDate[dateKey] ?? [];
+      return filterSlotsByPreference(daySlots, selectedPreference).length > 0;
+    });
+  }, [dateWindow, filterSlotsByPreference, getDateKey, selectedPreference, slotsByDate]);
 
   // Internal function to fetch and process slots, returns TimeSlot[]
-  const fetchGHLCalendarSlotsInternal = async (date: Date): Promise<TimeSlot[]> => {
+  const fetchGHLCalendarSlotsInternal = useCallback(async (date: Date): Promise<TimeSlot[]> => {
     if (!date) return [];
+
+    const dateKey = getDateKey(date);
+    const cachedSlots = slotsByDate[dateKey];
+    if (cachedSlots) {
+      return cachedSlots;
+    }
     
     const queryStartDate = startOfDay(date).getTime();
     const queryEndDate = endOfDay(date).getTime();
@@ -105,7 +131,6 @@ export default function BookingFlow() {
       }
       
       let fetchedSlotStrings: string[] = [];
-      const dateKey = format(date, 'yyyy-MM-dd'); 
 
       if (data && typeof data === 'object' && data !== null && data[dateKey] && typeof data[dateKey] === 'object' && data[dateKey] !== null && Array.isArray(data[dateKey].slots)) {
         fetchedSlotStrings = data[dateKey].slots.filter((s: any) => typeof s === 'string');
@@ -144,36 +169,82 @@ export default function BookingFlow() {
       if (processedSlots.length > 0) {
           console.log(`[BookingFlow] Successfully processed ${processedSlots.length} fixed-duration (60min) slots (internal). First slot:`, processedSlots[0]);
       }
+
+      setSlotsByDate(prev => ({ ...prev, [dateKey]: processedSlots }));
       return processedSlots;
     } catch (error) {
       console.error('[BookingFlow] Failed to fetch or process GHL slots (internal):', error);
       return [];
     }
-  };
+  }, [getDateKey, slotsByDate]);
+
+  const fetchGHLCalendarSlotsRange = useCallback(async (start: Date, end: Date): Promise<Record<string, TimeSlot[]>> => {
+    const queryStartDate = startOfDay(start).getTime();
+    const queryEndDate = endOfDay(end).getTime();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const ghlEndpoint = 'appointments/slots';
+    const apiUrl = `/api/gohighlevel?endpoint=${ghlEndpoint}&startDate=${queryStartDate}&endDate=${queryEndDate}&timezone=${encodeURIComponent(timezone)}`;
+
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        return {};
+      }
+
+      const data: unknown = await response.json();
+      if (!data || typeof data !== 'object') {
+        return {};
+      }
+
+      const rangeSlots: Record<string, TimeSlot[]> = {};
+
+      for (const date of dateWindow) {
+        const dateKey = getDateKey(date);
+        const dayNode = (data as Record<string, unknown>)[dateKey];
+        const slotStrings =
+          dayNode &&
+          typeof dayNode === 'object' &&
+          Array.isArray((dayNode as { slots?: unknown }).slots)
+            ? ((dayNode as { slots?: unknown[] }).slots ?? []).filter((slot): slot is string => typeof slot === 'string')
+            : [];
+
+        const processedSlots: TimeSlot[] = slotStrings
+          .map((slotISOString) => {
+            try {
+              const slotStartDateTime = parseISO(slotISOString);
+              const slotEndDateTime = addMinutes(slotStartDateTime, DEFAULT_SLOT_DURATION_MINUTES);
+
+              return {
+                start: slotISOString,
+                end: slotEndDateTime.toISOString(),
+                displayTime: format(slotStartDateTime, 'HH:mm', { locale: it }),
+              };
+            } catch {
+              return null;
+            }
+          })
+          .filter((slot): slot is TimeSlot => slot !== null)
+          .sort((a, b) => parseISO(a.start).getTime() - parseISO(b.start).getTime());
+
+        rangeSlots[dateKey] = processedSlots;
+      }
+
+      return rangeSlots;
+    } catch {
+      return {};
+    }
+  }, [dateWindow, getDateKey]);
 
   // Fetches and sets slots for a given date (usually for manual date selection)
-  const fetchAndSetSlotsForDate = async (date: Date) => {
+  const fetchAndSetSlotsForDate = useCallback(async (date: Date) => {
     if (!date) return;
     setIsLoadingSlots(true);
     setAvailableSlots([]); 
     const slots = await fetchGHLCalendarSlotsInternal(date);
-    setAvailableSlots(slots);
+    const slotsForPreference = filterSlotsByPreference(slots, selectedPreference);
+    setAvailableSlots(slotsForPreference);
     setIsLoadingSlots(false);
-  };
-
-  const filterSlotsByPreference = (slots: TimeSlot[], preference: string | null): TimeSlot[] => {
-    if (!preference) return slots; // Return all if no preference
-    return slots.filter(slot => {
-        const slotDate = parseISO(slot.start);
-        const hour = getHours(slotDate); // Use getHours from date-fns
-        if (preference === 'morning') {
-            return hour >= 8 && hour < 13; // 8:00 AM to 12:59 PM
-        } else if (preference === 'afternoon') {
-            return hour >= 13 && hour < 18; // 1:00 PM to 5:59 PM
-        }
-        return true; // Should not happen if preference is 'morning' or 'afternoon'
-    });
-  };
+  }, [fetchGHLCalendarSlotsInternal, filterSlotsByPreference, selectedPreference]);
 
   // Effect to fetch slots when selectedDate changes (for manual selection)
   useEffect(() => {
@@ -183,14 +254,16 @@ export default function BookingFlow() {
     if (didAutoFindJustCompleteRef.current) {
         didAutoFindJustCompleteRef.current = false; // Reset the flag
     }
-  }, [selectedDate, isAutoFindingDate]);
+  }, [selectedDate, isAutoFindingDate, fetchAndSetSlotsForDate]);
 
   // Effect for auto-finding the first available date/slot (optimized to stop on first match)
   useEffect(() => {
     if (!isAutoFindingDate || !selectedPreference) return;
 
     const findAndSetParallel = async () => {
-      const datesToSearch = generateDates();
+      autoFindRequestIdRef.current += 1;
+      const currentRequestId = autoFindRequestIdRef.current;
+      const datesToSearch = dateWindow;
       
       console.log(`[BookingFlow] Auto-finding: Starting optimized search for ${selectedPreference} slots`);
       
@@ -199,90 +272,54 @@ export default function BookingFlow() {
       setSelectedDate(null);
       setIsLoadingSlots(true);
       
-      let foundResult = false;
-      
-      // Create promises for all dates but process them as they resolve
-      const slotPromises = datesToSearch.map(async (date, index) => {
-        try {
-          const slots = await fetchGHLCalendarSlotsInternal(date);
-          const preferredSlots = filterSlotsByPreference(slots, selectedPreference);
-          return {
-            date,
-            index,
-            allSlots: slots,
-            preferredSlots,
-            hasPreferredSlots: preferredSlots.length > 0
-          };
-        } catch (error) {
-          console.error(`[BookingFlow] Error fetching slots for ${format(date, 'yyyy-MM-dd')}:`, error);
-          return {
-            date,
-            index,
-            allSlots: [],
-            preferredSlots: [],
-            hasPreferredSlots: false
-          };
-        }
-      });
-
-      // Process results as they come in, stop on first match
       try {
-        for (const promise of slotPromises) {
-          if (foundResult) break; // Exit early if we already found a result
-          
-          const result = await promise;
-          
-          if (!foundResult && result.hasPreferredSlots) {
-            foundResult = true;
-            
-            console.log(`[BookingFlow] Auto-finding: Found ${result.preferredSlots.length} preferred slots on ${format(result.date, 'yyyy-MM-dd')} - stopping search immediately`);
-            
-            // Set the found date and slots immediately
-            setSelectedDate(result.date);
-            setAvailableSlots(result.allSlots);
-             
-            // Animate to the selected date
-            setTimeout(() => {
-              if (datesContainerRef.current) {
-                const container = datesContainerRef.current;
-                const dateCards = container.querySelectorAll('.date-card');
-                const selectedIndex = result.index;
-                
-                if (dateCards[selectedIndex]) {
-                  const selectedCard = dateCards[selectedIndex] as HTMLElement;
-                  const containerWidth = container.clientWidth;
-                  const cardWidth = selectedCard.offsetWidth;
-                  const cardLeft = selectedCard.offsetLeft;
-                  const centerPosition = cardLeft - (containerWidth / 2) + (cardWidth / 2);
-                  
-                  container.scrollTo({ left: centerPosition, behavior: 'smooth' });
-                }
-              }
-            }, 100);
+        const firstDate = datesToSearch[0];
+        const lastDate = datesToSearch[datesToSearch.length - 1];
+        if (!firstDate || !lastDate) {
+          setIsAutoFindingDate(false);
+          setIsLoadingSlots(false);
+          return;
+        }
 
-            // Stay on timeslots step
-            setCurrentStep('timeslots');
-            
-            didAutoFindJustCompleteRef.current = true;
-            
-            // Clean up loading state immediately
-            setIsAutoFindingDate(false);
-            setIsLoadingSlots(false);
-            
-            return; // Exit the function immediately
-          }
+        const rangeSlots = await fetchGHLCalendarSlotsRange(firstDate, lastDate);
+
+        const results = datesToSearch.map((date, index) => {
+          const allSlots = rangeSlots[getDateKey(date)] ?? [];
+          const preferredSlots = filterSlotsByPreference(allSlots, selectedPreference);
+          return {
+            date,
+            index,
+            allSlots,
+            preferredSlots,
+            hasPreferredSlots: preferredSlots.length > 0,
+          };
+        });
+
+        setSlotsByDate(prev => ({ ...prev, ...rangeSlots }));
+
+        if (currentRequestId !== autoFindRequestIdRef.current) {
+          return;
         }
-        
-        // Only reach here if no preferred slots were found in any date
-        if (!foundResult) {
-          console.log('[BookingFlow] Auto-finding: No preferred slots found in the next 14 days.');
-          
-          // Wait for first promise to get the first date's slots
-          const firstResult = await slotPromises[0];
-          setSelectedDate(firstResult.date);
-          setAvailableSlots(firstResult.allSlots);
+
+        const firstPreferredResult = results.find(result => result.hasPreferredSlots);
+        if (firstPreferredResult) {
+          console.log(
+            `[BookingFlow] Auto-finding: Found ${firstPreferredResult.preferredSlots.length} preferred slots on ${format(firstPreferredResult.date, 'yyyy-MM-dd')}`,
+          );
+
+          setSelectedDate(firstPreferredResult.date);
+          setAvailableSlots(firstPreferredResult.preferredSlots);
           setCurrentStep('timeslots');
+          didAutoFindJustCompleteRef.current = true;
+          setIsAutoFindingDate(false);
+          setIsLoadingSlots(false);
+          return;
         }
+
+        console.log('[BookingFlow] Auto-finding: No slots found in the next 14 days.');
+        setSelectedDate(null);
+        setAvailableSlots([]);
+        setCurrentStep('timeslots');
         
       } catch (error) {
         console.error('[BookingFlow] Error in optimized auto-finding:', error);
@@ -294,7 +331,7 @@ export default function BookingFlow() {
     };
 
     findAndSetParallel();
-  }, [isAutoFindingDate, selectedPreference, autoFindDateAttempt]);
+  }, [autoFindDateAttempt, dateWindow, fetchGHLCalendarSlotsRange, filterSlotsByPreference, getDateKey, isAutoFindingDate, selectedPreference]);
 
   // Handle preference selection
   const handlePreferenceSelect = (preference: string) => {
@@ -312,14 +349,12 @@ export default function BookingFlow() {
     setIsAutoFindingDate(false); // Stop auto-finding if user manually selects a date
     setSelectedDate(date); 
     setSelectedTime(null); // Clear time when new date is selected
-    fetchAndSetSlotsForDate(date); // Manually fetch slots for this date
     setCurrentStep('timeslots'); // Ensure we are on the timeslots step
     
     if (datesContainerRef.current) {
       const container = datesContainerRef.current;
       const dateCards = container.querySelectorAll('.date-card');
-      const dates = generateDates();
-      const selectedIndex = dates.findIndex(d => isSameDay(d, date));
+      const selectedIndex = selectableDates.findIndex(d => isSameDay(d, date));
       
       if (selectedIndex !== -1 && dateCards[selectedIndex]) {
         const selectedCard = dateCards[selectedIndex] as HTMLElement;
@@ -448,8 +483,7 @@ export default function BookingFlow() {
         if (!container) return;
 
         const dateCards = container.querySelectorAll('.date-card');
-        const dates = generateDates();
-        const selectedIndex = dates.findIndex(d => isSameDay(d, selectedDate));
+        const selectedIndex = selectableDates.findIndex(d => isSameDay(d, selectedDate));
         
         if (selectedIndex !== -1 && dateCards[selectedIndex]) {
           const selectedCard = dateCards[selectedIndex] as HTMLElement;
@@ -466,7 +500,7 @@ export default function BookingFlow() {
         }
       }, 100); // Small delay for DOM readiness
     }
-  }, [currentStep, selectedDate]);
+  }, [currentStep, selectableDates, selectedDate]);
 
   const calculateDuration = (startTimeISO: string, endTimeISO: string): string => {
     if (!startTimeISO || !endTimeISO) return '';
@@ -531,7 +565,7 @@ export default function BookingFlow() {
             <i className="fas fa-chevron-left"></i>
           </button>
           <div className="dates-container" ref={datesContainerRef}>
-            {generateDates().map((date, index) => (
+            {selectableDates.map((date) => (
               <div
                 key={date.toISOString()}
                 className={`date-card ${selectedDate && isSameDay(date, selectedDate) ? 'selected' : ''}`}
@@ -551,6 +585,15 @@ export default function BookingFlow() {
             <i className="fas fa-chevron-right"></i>
           </button>
         </div>
+
+        {!isAutoFindingDate && selectableDates.length === 0 ? (
+          <div className="no-slots-message">
+            <div className="empty-state-icon">
+              <i className="fas fa-calendar-times"></i>
+            </div>
+            <p>Nessun giorno disponibile per la preferenza selezionata nei prossimi 14 giorni.</p>
+          </div>
+        ) : null}
         
         <div className={`timeslots-container ${
           (isAutoFindingDate || isLoadingSlots) ? 'loading-state' : 
@@ -608,7 +651,7 @@ export default function BookingFlow() {
             <i className="fas fa-chevron-left"></i>
           </button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="contact-form">
           {bookingError && (
             <div className="error-message" style={{ 
               color: 'var(--error-color)', 

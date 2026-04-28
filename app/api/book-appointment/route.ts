@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGoHighLevelConfig } from '@/lib/server/gohighlevel/config';
-import { buildAppointmentPayload } from '@/lib/server/gohighlevel/request';
+
+const GHL_V2_BASE_URL = 'https://services.leadconnectorhq.com';
+const CONTACTS_VERSION = '2021-07-28';
+const CALENDAR_EVENTS_VERSION = '2021-04-15';
+const DEFAULT_SLOT_DURATION_MINUTES = 60;
+
+type GhlHttpResponse = {
+  ok: boolean;
+  status: number;
+  statusText: string;
+  responseText: string;
+};
 
 function normalizePhoneNumber(phone: string): string {
   if (!phone) return '';
@@ -13,6 +24,87 @@ function normalizePhoneNumber(phone: string): string {
   // For now, we just clean spaces and common symbols.
   normalized = phone.replace(/\s|-|\(|\)/g, ''); 
   return normalized;
+}
+
+function addMinutesToIsoTime(startTimeIso: string, minutes: number): string {
+  const startMs = Date.parse(startTimeIso);
+  if (Number.isNaN(startMs)) {
+    throw new Error('Invalid selectedSlot format. Expected a valid ISO datetime string.');
+  }
+
+  return new Date(startMs + minutes * 60_000).toISOString();
+}
+
+async function sendGhlRequest(
+  endpoint: string,
+  version: string,
+  apiKey: string,
+  payload: Record<string, unknown>,
+): Promise<GhlHttpResponse> {
+  const response = await fetch(`${GHL_V2_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'Version': version,
+    },
+    body: JSON.stringify(payload)
+  });
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    statusText: response.statusText,
+    responseText: await response.text(),
+  };
+}
+
+function extractGhlErrorMessage(status: number, responseText: string): string {
+  let errorMessage = `GHL API Error (${status})`;
+
+  try {
+    const errorData = JSON.parse(responseText) as {
+      message?: string;
+      msg?: string;
+      error?: { message?: string } | string;
+      errors?: Array<{ message?: string }>;
+      [key: string]: unknown;
+    };
+
+    const maybeDirectMessage =
+      errorData.message ||
+      errorData.msg ||
+      (typeof errorData.error === 'string' ? errorData.error : errorData.error?.message);
+
+    if (maybeDirectMessage) {
+      errorMessage = maybeDirectMessage;
+    }
+
+    if (errorData.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+      errorMessage += `: ${errorData.errors
+        .map((err) => err.message || JSON.stringify(err))
+        .join(', ')}`;
+    }
+  } catch {
+    errorMessage += `: Failed to parse GHL error response. Raw text: ${responseText.substring(0, 200)}`;
+  }
+
+  return errorMessage;
+}
+
+function extractContactId(responseText: string): string | null {
+  try {
+    const parsed = JSON.parse(responseText) as {
+      id?: string;
+      contact?: { id?: string };
+      data?: { id?: string; contact?: { id?: string } };
+    };
+
+    return parsed.contact?.id ?? parsed.data?.contact?.id ?? parsed.id ?? parsed.data?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -31,68 +123,83 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log('[API /book-appointment] Request body:', body);
-    const { email, phone, selectedSlot, selectedTimezone } = body;
+    const { firstName, lastName, email, phone, selectedSlot, selectedTimezone } = body;
+    const trimmedFirstName = typeof firstName === 'string' ? firstName.trim() : '';
+    const trimmedLastName = typeof lastName === 'string' ? lastName.trim() : '';
+    const trimmedEmail = typeof email === 'string' ? email.trim() : '';
 
-    if (!email || !selectedSlot || !selectedTimezone) {
+    if (!trimmedFirstName || !trimmedLastName || !trimmedEmail || !selectedSlot || !selectedTimezone) {
       console.error('[API /book-appointment] Validation Error: Missing required fields');
       return NextResponse.json(
-        { error: 'Missing required fields: email, selectedSlot, and selectedTimezone are required' },
+        { error: 'Missing required fields: firstName, lastName, email, selectedSlot, and selectedTimezone are required' },
         { status: 400 } // Bad Request for client error
       );
     }
 
     const normalizedPhone = phone ? normalizePhoneNumber(phone) : undefined;
-    const ghlData = buildAppointmentPayload(
-      {
-        selectedTimezone,
-        selectedSlot,
-        email,
-        phone: normalizedPhone,
-      },
-      config,
-    );
+    const endTime = addMinutesToIsoTime(selectedSlot, DEFAULT_SLOT_DURATION_MINUTES);
+
+    const contactPayload: Record<string, unknown> = {
+      locationId: config.locationId,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
+      email: trimmedEmail,
+    };
+
+    if (normalizedPhone) {
+      contactPayload.phone = normalizedPhone;
+    }
 
     if (normalizedPhone) {
       console.log(`[API /book-appointment] Normalized phone: ${phone} -> ${normalizedPhone}`);
     }
 
-    console.log('[API /book-appointment] Sending data to GHL:', ghlData);
+    console.log('[API /book-appointment] Upserting contact in GHL v2 with payload:', contactPayload);
+    const upsertResponse = await sendGhlRequest('/contacts/upsert', CONTACTS_VERSION, config.apiKey, contactPayload);
+    console.log(`[API /book-appointment] GHL contact upsert status: ${upsertResponse.status}`);
+    console.log('[API /book-appointment] GHL contact upsert raw response:', upsertResponse.responseText);
 
-    const ghlResponse = await fetch(config.appointmentsApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`
-      },
-      body: JSON.stringify(ghlData)
-    });
+    if (!upsertResponse.ok) {
+      const errorMessage = extractGhlErrorMessage(upsertResponse.status, upsertResponse.responseText);
+      return NextResponse.json({ error: errorMessage }, { status: upsertResponse.status });
+    }
 
-    const responseText = await ghlResponse.text(); // Get text first for better error logging
-    console.log(`[API /book-appointment] GHL Raw Response Status: ${ghlResponse.status}`);
-    console.log('[API /book-appointment] GHL Raw Response Text:', responseText);
+    const contactId = extractContactId(upsertResponse.responseText);
+    if (!contactId) {
+      return NextResponse.json(
+        { error: 'GHL contact upsert succeeded but no contactId was returned.' },
+        { status: 502 },
+      );
+    }
 
-    if (!ghlResponse.ok) {
+    const appointmentPayload: Record<string, unknown> = {
+      calendarId: config.calendarId,
+      locationId: config.locationId,
+      contactId,
+      startTime: selectedSlot,
+      endTime,
+      title: `Appointment - ${trimmedFirstName} ${trimmedLastName}`,
+      appointmentStatus: 'new',
+      selectedTimezone,
+    };
+
+    console.log('[API /book-appointment] Creating appointment in GHL v2 with payload:', appointmentPayload);
+    const appointmentResponse = await sendGhlRequest('/calendars/events/appointments', CALENDAR_EVENTS_VERSION, config.apiKey, appointmentPayload);
+    const responseText = appointmentResponse.responseText;
+    console.log(`[API /book-appointment] GHL appointment create status: ${appointmentResponse.status}`);
+    console.log('[API /book-appointment] GHL appointment create raw response:', responseText);
+
+    if (!appointmentResponse.ok) {
       console.error('[API /book-appointment] GHL API Error Details:', {
-        status: ghlResponse.status,
-        statusText: ghlResponse.statusText,
+        status: appointmentResponse.status,
+        statusText: appointmentResponse.statusText,
         responseText
       });
-      let errorMessage = `GHL API Error (${ghlResponse.status})`;
-      try {
-        const errorData = JSON.parse(responseText);
-        errorMessage = errorData.message || errorData.error?.message || (typeof errorData.error === 'string' ? errorData.error : errorMessage);
-        if (errorData.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-           errorMessage += `: ${errorData.errors
-             .map((err: { message?: string }) => err.message || JSON.stringify(err))
-             .join(', ')}`;
-        }
-      } catch {
-         errorMessage += ': Failed to parse GHL error response. Raw text: ' + responseText.substring(0, 200);
-      }
+      const errorMessage = extractGhlErrorMessage(appointmentResponse.status, responseText);
        // Return GHL's status code if it's a 4xx or 5xx client/server error from their end
       return NextResponse.json(
         { error: errorMessage },
-        { status: ghlResponse.status } // Use GHL's status for more direct feedback
+        { status: appointmentResponse.status } // Use GHL's status for more direct feedback
       );
     }
 
@@ -109,8 +216,10 @@ export async function POST(request: NextRequest) {
       success: true,
       data: responseData,
       appointmentDetails: { // Return what was attempted for confirmation UI
-        email,
-        phone: ghlData.phone, // Send back the normalized phone
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
+        email: trimmedEmail,
+        phone: normalizedPhone,
         selectedSlot,
         selectedTimezone
       }

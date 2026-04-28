@@ -781,6 +781,12 @@ body {
   margin: 0 auto;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .contact-selection-summary {
   width: 100%;
   margin-bottom: 1rem;
@@ -1015,6 +1021,11 @@ body {
 
   .contact-form {
     max-width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
   
   .booking-step h2 {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
-import { format, addDays, isSameDay, isAfter, startOfDay, parseISO, differenceInMinutes, endOfDay, addMinutes, getHours } from 'date-fns';
+import { format, addDays, isSameDay, startOfDay, parseISO, differenceInMinutes, endOfDay, addMinutes, getHours } from 'date-fns';
 import { it } from 'date-fns/locale';
 
 const DEFAULT_SLOT_DURATION_MINUTES = 60; // All slots are now considered 60 minutes
@@ -15,6 +15,8 @@ interface TimeSlot {
 interface AppointmentDetails {
   date: string;
   time: string; // This will now likely be the ISO start time string
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
 }
@@ -428,6 +430,8 @@ export default function BookingFlow() {
     e.preventDefault();
     console.log('[BookingFlow handleSubmit] Form submitted. Current step:', currentStep, 'isBooking:', isBooking);
     const formData = new FormData(e.currentTarget);
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
     const email = formData.get('email') as string;
     const phone = formData.get('phone') as string;
 
@@ -437,9 +441,9 @@ export default function BookingFlow() {
       return;
     }
 
-    if (!email) {
-      console.warn('[BookingFlow handleSubmit] Validation failed: Email not provided.');
-      setBookingError('Please provide your email address.');
+    if (!firstName || !lastName || !email) {
+      console.warn('[BookingFlow handleSubmit] Validation failed: Required contact fields missing.');
+      setBookingError('Inserisci nome, cognome ed email per confermare l’appuntamento.');
       return;
     }
 
@@ -451,6 +455,8 @@ export default function BookingFlow() {
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const bookingData = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         email: email.trim(),
         phone: phone?.trim() || undefined,
         selectedSlot: selectedTime,
@@ -483,6 +489,8 @@ export default function BookingFlow() {
         setAppointmentDetails({
           date: formatDateForDisplay(selectedDate),
           time: format(parseISO(selectedTime), 'HH:mm', { locale: it }),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
           email,
           phone: phone || '',
         });
@@ -738,6 +746,32 @@ export default function BookingFlow() {
               {bookingError}
             </div>
           )}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="firstName">Nome*</label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                required
+                autoComplete="given-name"
+                placeholder="Il tuo nome"
+                disabled={isBooking}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="lastName">Cognome*</label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                required
+                autoComplete="family-name"
+                placeholder="Il tuo cognome"
+                disabled={isBooking}
+              />
+            </div>
+          </div>
           <div className="form-group">
             <label htmlFor="email">Email*</label>
             <input 
@@ -745,6 +779,7 @@ export default function BookingFlow() {
               id="email" 
               name="email" 
               required 
+              autoComplete="email"
               placeholder="La tua email" 
               disabled={isBooking}
             />
@@ -755,6 +790,7 @@ export default function BookingFlow() {
               type="tel" 
               id="phone" 
               name="phone" 
+              autoComplete="tel"
               placeholder="Il tuo miglior numero" 
               disabled={isBooking}
             />
@@ -787,6 +823,10 @@ export default function BookingFlow() {
               <div className="detail-item">
                 <div className="label">Orario</div>
                 <div className="value">{appointmentDetails.time}</div>
+              </div>
+              <div className="detail-item">
+                <div className="label">Nome</div>
+                <div className="value">{appointmentDetails.firstName} {appointmentDetails.lastName}</div>
               </div>
               <div className="detail-item">
                 <div className="label">Email</div>

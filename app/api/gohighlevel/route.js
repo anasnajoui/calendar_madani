@@ -27,10 +27,21 @@ async function handleRequest(request) {
     return NextResponse.json({ error: 'Endpoint parameter is required' }, { status: 400 });
   }
 
-  let apiUrl = `${config.baseApiUrl}/${endpoint}`;
+  // Translate legacy v1 endpoint name to GHL v2 path. Slots in v2 live at
+  // /calendars/{calendarId}/free-slots and require the Version header.
+  let resolvedEndpoint = endpoint;
+  let versionHeader = '2021-04-15';
+
+  if (endpoint === 'appointments/slots') {
+    resolvedEndpoint = `calendars/${config.calendarId}/free-slots`;
+    delete params.calendarId;
+    delete params.locationId;
+  }
+
+  let apiUrl = `${config.baseApiUrl}/${resolvedEndpoint}`;
 
   if (request.method === 'GET') {
-    const mergedParams = getProxyParams(endpoint, params, config);
+    const mergedParams = getProxyParams(resolvedEndpoint, params, config);
     const queryParams = new URLSearchParams();
     for (const [key, value] of Object.entries(mergedParams)) {
       queryParams.append(key, value);
@@ -49,7 +60,9 @@ async function handleRequest(request) {
       method: request.method,
       headers: {
         'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Version': versionHeader,
       },
     };
 

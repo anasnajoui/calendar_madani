@@ -7,12 +7,8 @@ export const getProxyParams = (
   clientParams: QueryParams,
   config: GoHighLevelConfig,
 ): QueryParams => {
-  if (endpoint === 'appointments/slots') {
-    return {
-      ...clientParams,
-      calendarId: config.calendarId,
-      locationId: config.locationId,
-    };
+  if (endpoint === `calendars/${config.calendarId}/free-slots`) {
+    return { ...clientParams };
   }
 
   return clientParams;

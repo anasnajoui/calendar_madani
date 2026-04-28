@@ -18,8 +18,8 @@ describe('getGoHighLevelConfig', () => {
     expect(config.apiKey).toBe('test-api-key');
     expect(config.calendarId).toBe('cal-123');
     expect(config.locationId).toBe('loc-456');
-    expect(config.baseApiUrl).toBe('https://rest.gohighlevel.com/v1');
-    expect(config.appointmentsApiUrl).toBe('https://rest.gohighlevel.com/v1/appointments/');
+    expect(config.baseApiUrl).toBe('https://services.leadconnectorhq.com');
+    expect(config.appointmentsApiUrl).toBe('https://services.leadconnectorhq.com/calendars/events/appointments');
   });
 
   it('throws clear error when GOHIGHLEVEL_CALENDAR_ID is missing', () => {

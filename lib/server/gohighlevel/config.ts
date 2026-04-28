@@ -1,4 +1,4 @@
-const BASE_API_URL = 'https://rest.gohighlevel.com/v1';
+const BASE_API_URL = 'https://services.leadconnectorhq.com';
 
 export type GoHighLevelConfig = {
   apiKey: string;
@@ -26,6 +26,6 @@ export const getGoHighLevelConfig = (): GoHighLevelConfig => {
     calendarId,
     locationId,
     baseApiUrl: BASE_API_URL,
-    appointmentsApiUrl: `${BASE_API_URL}/appointments/`,
+    appointmentsApiUrl: `${BASE_API_URL}/calendars/events/appointments`,
   };
 };

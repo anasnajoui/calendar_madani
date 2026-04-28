@@ -6,26 +6,24 @@ const config: GoHighLevelConfig = {
   apiKey: 'test-api-key',
   calendarId: 'cal-env',
   locationId: 'loc-env',
-  baseApiUrl: 'https://rest.gohighlevel.com/v1',
-  appointmentsApiUrl: 'https://rest.gohighlevel.com/v1/appointments/',
+  baseApiUrl: 'https://services.leadconnectorhq.com',
+  appointmentsApiUrl: 'https://services.leadconnectorhq.com/calendars/events/appointments',
 };
 
 describe('getProxyParams', () => {
-  it('forces server-owned calendar and location for appointments/slots', () => {
+  it('passes through client params for v2 free-slots endpoint without injecting locationId', () => {
     const params = getProxyParams(
-      'appointments/slots',
+      `calendars/${config.calendarId}/free-slots`,
       {
-        calendarId: 'client-calendar',
-        locationId: 'client-location',
         timezone: 'Europe/Rome',
         startDate: '1735689600000',
       },
       config,
     );
 
-    expect(params.calendarId).toBe('cal-env');
-    expect(params.locationId).toBe('loc-env');
+    expect(params.locationId).toBeUndefined();
     expect(params.timezone).toBe('Europe/Rome');
+    expect(params.startDate).toBe('1735689600000');
   });
 
   it('keeps original params for non-slot endpoints', () => {

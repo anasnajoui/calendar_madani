@@ -22,6 +22,8 @@ export const buildAppointmentPayload = (
   input: {
     selectedTimezone: string;
     selectedSlot: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone?: string;
   },
@@ -31,6 +33,8 @@ export const buildAppointmentPayload = (
   locationId: string;
   selectedTimezone: string;
   selectedSlot: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
 } => {
@@ -39,6 +43,8 @@ export const buildAppointmentPayload = (
     locationId: config.locationId,
     selectedTimezone: input.selectedTimezone,
     selectedSlot: input.selectedSlot,
+    firstName: input.firstName,
+    lastName: input.lastName,
     email: input.email,
     phone: input.phone,
   };

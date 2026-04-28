@@ -47,6 +47,8 @@ describe('buildAppointmentPayload', () => {
       {
         selectedTimezone: 'Europe/Rome',
         selectedSlot: '2026-04-05T09:00:00.000Z',
+        firstName: 'Mario',
+        lastName: 'Rossi',
         email: 'test@example.com',
         phone: '+393331112223',
       },
@@ -56,6 +58,8 @@ describe('buildAppointmentPayload', () => {
     expect(payload.calendarId).toBe('cal-env');
     expect(payload.locationId).toBe('loc-env');
     expect(payload.selectedTimezone).toBe('Europe/Rome');
+    expect(payload.firstName).toBe('Mario');
+    expect(payload.lastName).toBe('Rossi');
     expect(payload.email).toBe('test@example.com');
     expect(payload.phone).toBe('+393331112223');
   });
@@ -65,6 +69,8 @@ describe('buildAppointmentPayload', () => {
       {
         selectedTimezone: 'Europe/Rome',
         selectedSlot: '2026-04-05T09:00:00.000Z',
+        firstName: 'Mario',
+        lastName: 'Rossi',
         email: 'test@example.com',
       },
       config,

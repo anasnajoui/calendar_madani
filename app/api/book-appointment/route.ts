@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       startTime: selectedSlot,
       endTime,
       title: `Appointment - ${trimmedFirstName} ${trimmedLastName}`,
-      appointmentStatus: 'new',
+      appointmentStatus: 'confirmed',
       selectedTimezone,
     };
 

@@ -88,6 +88,7 @@ describe('POST /api/book-appointment', () => {
     expect(appointmentPayload.endTime).toBe('2026-04-05T10:00:00.000Z');
     expect(appointmentPayload.selectedTimezone).toBe('Europe/Rome');
     expect(appointmentPayload.appointmentStatus).toBe('confirmed');
+    expect(appointmentPayload).not.toHaveProperty('title');
   });
 
   it('returns 502 when contact upsert succeeds without contact id', async () => {

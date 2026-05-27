@@ -178,7 +178,6 @@ export async function POST(request: NextRequest) {
       contactId,
       startTime: selectedSlot,
       endTime,
-      title: `Appointment - ${trimmedFirstName} ${trimmedLastName}`,
       appointmentStatus: 'confirmed',
       selectedTimezone,
     };
